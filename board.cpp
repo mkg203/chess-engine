@@ -45,9 +45,9 @@ public:
 
     whiteRook = 0b10000001;
 
-    whiteQueen = 0b00010000;
+    whiteQueen = 0b00001000;
 
-    whiteKing = 0b00001000;
+    whiteKing = 0b00010000;
   }
 
   uint64_t fullBoard() {
@@ -178,8 +178,7 @@ public:
     return moves;
   }
 
-  uint64_t bishopMoveGen() {
-    uint64_t piece = (wTurn) ? whiteBishop : blackBishop;
+  uint64_t diagMoveGen(uint64_t piece) {
     uint64_t moves_nw = piece;
     uint64_t moves_ne = piece;
     uint64_t moves_sw = piece;
@@ -210,8 +209,13 @@ public:
     return (moves_nw | moves_ne | moves_se | moves_sw);
   }
 
-  uint64_t rookMoveGen() {
-    uint64_t piece = (wTurn) ? whiteRook : blackRook;
+  uint64_t bishopMoveGen() {
+    uint64_t piece = (wTurn) ? whiteBishop : blackBishop;
+    
+    return diagMoveGen(piece);
+  }
+
+  uint64_t straightMoveGen(uint64_t piece) {
     uint64_t moves_n = piece;
     uint64_t moves_s = piece;
     uint64_t moves_e = piece;
@@ -239,10 +243,16 @@ public:
     return (moves_n | moves_e | moves_s | moves_w);
   }
 
-  uint64_t queenMoveGen() {
-    uint64_t moves;
+  uint64_t rookMoveGen() {
+    uint64_t piece = (wTurn) ? whiteRook : blackRook;
 
-    return moves;
+    return straightMoveGen(piece);
+  }
+
+  uint64_t queenMoveGen() {
+    uint64_t piece = (wTurn) ? whiteQueen : blackQueen;
+
+    return diagMoveGen(piece) | straightMoveGen(piece);
   }
 };
 
@@ -251,5 +261,5 @@ int main() {
 
   /*board.printBoard();*/
 
-  board.printBitBoard(board.bishopMoveGen());
+  board.printBitBoard(board.queenMoveGen());
 }
