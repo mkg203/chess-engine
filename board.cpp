@@ -82,7 +82,7 @@ public:
 
   uint64_t allySquares() {
     if (wTurn) {
-      return (whiteKnight | whiteBishop | whiteRook | whiteQueen |
+      return (whitePawn | whiteKnight | whiteBishop | whiteRook | whiteQueen |
               whiteKing);
     }
     return (blackPawn | blackKnight | blackBishop | blackRook | blackQueen |
@@ -187,19 +187,25 @@ public:
 
     for (int i = 0; i < 8; i++) {
       moves_ne |= ((allySquares() | enemySquares()) ^
-                     ((moves_ne << 9) & ~Constant::FILE_A)) &
-                     ((moves_ne << 9) & ~Constant::FILE_A);
+                   ((moves_ne << 9) & ~Constant::FILE_A)) &
+                  ((moves_ne << 9) & ~Constant::FILE_A);
       moves_nw |= ((allySquares() | enemySquares()) ^
-                    ((moves_nw << 7) & ~Constant::FILE_H)) &
-                    ((moves_nw << 7) & ~Constant::FILE_H);
+                   ((moves_nw << 7) & ~Constant::FILE_H)) &
+                  ((moves_nw << 7) & ~Constant::FILE_H);
 
       moves_sw |= ((allySquares() | enemySquares()) ^
-                     ((moves_sw >> 9) & ~Constant::FILE_H)) &
-                     ((moves_sw >> 9) & ~Constant::FILE_H);
+                   ((moves_sw >> 9) & ~Constant::FILE_H)) &
+                  ((moves_sw >> 9) & ~Constant::FILE_H);
       moves_se |= ((allySquares() | enemySquares()) ^
-                    ((moves_se >> 7) & ~Constant::FILE_A)) &
-                    ((moves_se >> 7) & ~Constant::FILE_A);
+                   ((moves_se >> 7) & ~Constant::FILE_A)) &
+                  ((moves_se >> 7) & ~Constant::FILE_A);
     }
+
+    moves_ne |= (enemySquares() & ((moves_ne << 9) & ~Constant::FILE_A));
+    moves_nw |= (enemySquares() & ((moves_nw << 7) & ~Constant::FILE_H));
+
+    moves_sw |= (enemySquares() & ((moves_sw >> 9) & ~Constant::FILE_H));
+    moves_se |= (enemySquares() & ((moves_se >> 7) & ~Constant::FILE_A));
 
     return (moves_nw | moves_ne | moves_se | moves_sw);
   }
@@ -212,19 +218,23 @@ public:
     uint64_t moves_w = piece;
 
     for (int i = 0; i < 8; i++) {
-      moves_n |= ((allySquares() | enemySquares()) ^
-                     (moves_n << 8)) &
-                     (moves_n << 8);
-      moves_s |= ((allySquares() | enemySquares()) ^
-                     (moves_s >> 8)) &
-                     (moves_s >> 8);
+      moves_n |=
+          ((allySquares() | enemySquares()) ^ (moves_n << 8)) & (moves_n << 8);
+      moves_s |=
+          ((allySquares() | enemySquares()) ^ (moves_s >> 8)) & (moves_s >> 8);
+
       moves_e |= ((allySquares() | enemySquares()) ^
-                    ((moves_e >> 1) & ~Constant::FILE_H)) &
-                    ((moves_e >> 1) & ~Constant::FILE_H);
+                  ((moves_e >> 1) & ~Constant::FILE_H)) &
+                 ((moves_e >> 1) & ~Constant::FILE_H);
       moves_w |= ((allySquares() | enemySquares()) ^
-                    ((moves_w << 1) & ~Constant::FILE_A)) &
-                    ((moves_w << 1) & ~Constant::FILE_A);
+                  ((moves_w << 1) & ~Constant::FILE_A)) &
+                 ((moves_w << 1) & ~Constant::FILE_A);
     }
+
+    moves_n |= (enemySquares() & (moves_n << 8));
+    moves_s |= (enemySquares() & (moves_n >> 8));
+    moves_e |= (enemySquares() & (moves_e >> 1) & ~Constant::FILE_H);
+    moves_w |= (enemySquares() & (moves_e << 1) & ~Constant::FILE_A);
 
     return (moves_n | moves_e | moves_s | moves_w);
   }
@@ -241,5 +251,5 @@ int main() {
 
   /*board.printBoard();*/
 
-  board.printBitBoard(board.rookMoveGen());
+  board.printBitBoard(board.bishopMoveGen());
 }
