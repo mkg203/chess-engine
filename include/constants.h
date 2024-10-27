@@ -23,4 +23,15 @@ namespace Constant {
   constexpr std::uint64_t FILE_H = 0x8080808080808080ULL;
 }
 
+
+
+enum Piece {
+  King = (int) 'K', 
+  Queen = (int) 'Q', 
+  Rook = (int) 'R', 
+  Knight = (int) 'N', 
+  Bishop = (int) 'B', 
+  Pawn = (int) 'P'
+};
+
 #endif
