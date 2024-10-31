@@ -243,6 +243,12 @@ uint64_t Board::queenMoveGen() {
 }
 
 std::tuple<uint64_t, uint64_t> Board::moveGen(int identifier, uint64_t piece) {
+  /*
+  This function returns a tuple of 
+  current moves possible, backtracked moves from the input move
+  sliding piece movegen spotty because currently backtracked moves
+  include any ally square, not just the square of the piece in question.
+  */
   switch (identifier) {
   case Piece::King:
     return {kingMoveGen(), 1};
@@ -255,14 +261,14 @@ std::tuple<uint64_t, uint64_t> Board::moveGen(int identifier, uint64_t piece) {
   case Piece::Knight:
     return {knightMoveGen(), knightMoves(piece)};
   case Piece::Pawn:
-    return {pawnMoveGen(), makePawnMove(piece)};
+    return {pawnMoveGen(), backtrackPawnMove(piece)};
   }
 
-  /*std::cout << "passing";*/
   return {-1, -1};
 }
 
 std::tuple<int, uint64_t> Board::algebraicNotation(std::string move) {
+  /* Have to finish this function for ambiguous moves */
   auto len = move.length();
 
   switch (len) {
@@ -275,13 +281,6 @@ std::tuple<int, uint64_t> Board::algebraicNotation(std::string move) {
   }
   return {-1, -1};
 }
-
-// going to have to separate the sliding move gen functions into their own
-// directions to xor and remove for knight, ~ the colorKnight then ^ with move
-// gen of the algebraicNotation move ~ again then ^ with self movegen on
-// algebraic move -> & with piece -> ^ to remove piece from updated position.
-// for pawn, i think something similar would work?
-// generalize your movegen so you can use it!!!
 
 void Board::makeMove(std::string notation) {
   auto [identifier, move] = algebraicNotation(notation);
@@ -309,7 +308,7 @@ void Board::makeMove(std::string notation) {
   return;
 }
 
-uint64_t Board::makePawnMove(uint64_t move) {
+uint64_t Board::backtrackPawnMove(uint64_t move) {
   uint64_t attacks;
   uint64_t moves;
 

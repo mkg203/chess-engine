@@ -115,7 +115,7 @@ public:
   
   void makeMove(std::string);
 
-  uint64_t makePawnMove(uint64_t);
+  uint64_t backtrackPawnMove(uint64_t);
 };
 
 #endif
