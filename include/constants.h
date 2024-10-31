@@ -2,6 +2,12 @@
 #define CHESS_CONSTANTS_H
 
 #include <cstdint>
+#include <string>
+#include <unordered_map>
+
+namespace Error {
+  const std::string INVALID_MOVE = "INVALID MOVE. NOT POSSIBLE TO PLAY";
+}
 
 namespace Constant {
   constexpr std::uint64_t RANK_1 = 0x00000000000000FFULL;
@@ -21,6 +27,17 @@ namespace Constant {
   constexpr std::uint64_t FILE_F = 0x2020202020202020ULL;
   constexpr std::uint64_t FILE_G = 0x4040404040404040ULL;
   constexpr std::uint64_t FILE_H = 0x8080808080808080ULL;
+
+  const std::unordered_map<int, uint64_t> file_map = {
+    {'a', FILE_A},
+    {'b', FILE_B},
+    {'c', FILE_C},
+    {'d', FILE_D},
+    {'e', FILE_E},
+    {'f', FILE_F},
+    {'g', FILE_G},
+    {'h', FILE_H},
+  };
 }
 
 

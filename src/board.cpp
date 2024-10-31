@@ -1,9 +1,9 @@
+#include "../include/board.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../include/board.h"
 #include <cstdint>
 #include <ostream>
-#include <sys/types.h> 
+#include <sys/types.h>
 
 #include <iostream>
 #include <string>
@@ -48,15 +48,15 @@ uint64_t Board::allySquares() {
           blackKing);
 }
 
-uint64_t Board::pawnAttacks(uint64_t piece = (uint64_t) -1) {
-  piece = (piece == (uint64_t) -1) ? (wTurn) ? whitePawn : blackPawn : piece;
+uint64_t Board::pawnAttacks(uint64_t piece = (uint64_t)-1) {
+  piece = (piece == (uint64_t)-1) ? (wTurn) ? whitePawn : blackPawn : piece;
   uint64_t attacks;
   if (wTurn) {
-    attacks = (piece & ~Constant::FILE_A) << 7 |
-              (piece & ~Constant::FILE_H) << 9;
+    attacks = (piece & ~Constant::FILE_A) << 7 | (piece & ~Constant::FILE_H)
+                                                     << 9;
   } else {
-    attacks = (piece & ~Constant::FILE_H) >> 7 |
-              (piece & ~Constant::FILE_A) >> 9;
+    attacks =
+        (piece & ~Constant::FILE_H) >> 7 | (piece & ~Constant::FILE_A) >> 9;
   }
 
   return attacks;
@@ -79,7 +79,6 @@ uint64_t Board::pawnMoves(uint64_t piece) {
   // use a function to keep track of any double push up pawns
 
   return attacks | moves;
-  
 }
 uint64_t Board::pawnMoveGen() {
   if (wTurn) {
@@ -92,8 +91,7 @@ uint64_t Board::knightMoveGen() {
   uint64_t moves;
   if (wTurn) {
     moves = knightMoves(whiteKnight);
-  }
-  else {
+  } else {
     moves = knightMoves(blackKnight);
   }
   moves &= ~allySquares();
@@ -114,14 +112,14 @@ uint64_t Board::knightMoves(uint64_t piece) {
   moves |= ((piece >> 10) & ~(Constant::FILE_G | Constant::FILE_H));
   moves |= ((piece >> 17) & ~Constant::FILE_H);
 
-
   return moves;
 }
 
 uint64_t Board::attackedSquares() {
   wTurn = !wTurn;
   // add other pieces
-  uint64_t attacked = pawnAttacks() | knightMoveGen() | kingMoveGen() | bishopMoveGen() | rookMoveGen() | queenMoveGen();
+  uint64_t attacked = pawnAttacks() | knightMoveGen() | kingMoveGen() |
+                      bishopMoveGen() | rookMoveGen() | queenMoveGen();
   wTurn = !wTurn;
   return attacked;
 }
@@ -149,11 +147,10 @@ uint64_t Board::kingMoveGen() {
   moves &= allySquares();
   moves &= ~attackedSquares();
 
-
   return moves;
 }
 
-uint64_t Board::diagMoveGen(uint64_t piece) {
+uint64_t Board::diagMoveGen(uint64_t piece, bool backtrack = false) {
   uint64_t moves_nw = piece;
   uint64_t moves_ne = piece;
   uint64_t moves_sw = piece;
@@ -181,16 +178,24 @@ uint64_t Board::diagMoveGen(uint64_t piece) {
   moves_sw |= (enemySquares() & ((moves_sw >> 9) & ~Constant::FILE_H));
   moves_se |= (enemySquares() & ((moves_se >> 7) & ~Constant::FILE_A));
 
+  if (backtrack) {
+    moves_ne |= (allySquares() & ((moves_ne << 9) & ~Constant::FILE_A));
+    moves_nw |= (allySquares() & ((moves_nw << 7) & ~Constant::FILE_H));
+
+    moves_sw |= (allySquares() & ((moves_sw >> 9) & ~Constant::FILE_H));
+    moves_se |= (allySquares() & ((moves_se >> 7) & ~Constant::FILE_A));
+  }
+
   return (moves_nw | moves_ne | moves_se | moves_sw);
 }
 
 uint64_t Board::bishopMoveGen() {
   uint64_t piece = (wTurn) ? whiteBishop : blackBishop;
-  
+
   return diagMoveGen(piece);
 }
 
-uint64_t Board::straightMoveGen(uint64_t piece) {
+uint64_t Board::straightMoveGen(uint64_t piece, bool backtrack = false) {
   uint64_t moves_n = piece;
   uint64_t moves_s = piece;
   uint64_t moves_e = piece;
@@ -209,10 +214,18 @@ uint64_t Board::straightMoveGen(uint64_t piece) {
                 ((moves_w << 1) & ~Constant::FILE_A)) &
                ((moves_w << 1) & ~Constant::FILE_A);
   }
+  
   moves_n |= (enemySquares() & (moves_n << 8));
   moves_s |= (enemySquares() & (moves_n >> 8));
   moves_e |= (enemySquares() & (moves_e >> 1) & ~Constant::FILE_H);
   moves_w |= (enemySquares() & (moves_e << 1) & ~Constant::FILE_A);
+
+  if (backtrack) {
+    moves_n |= (allySquares() & (moves_n << 8));
+    moves_s |= (allySquares() & (moves_n >> 8));
+    moves_e |= (allySquares() & (moves_e >> 1) & ~Constant::FILE_H);
+    moves_w |= (allySquares() & (moves_e << 1) & ~Constant::FILE_A);
+  }
 
   return (moves_n | moves_e | moves_s | moves_w);
 }
@@ -231,18 +244,18 @@ uint64_t Board::queenMoveGen() {
 
 std::tuple<uint64_t, uint64_t> Board::moveGen(int identifier, uint64_t piece) {
   switch (identifier) {
-    case Piece::King:
-      return {kingMoveGen(), 1};
-    case Piece::Queen:
-      return {queenMoveGen(), diagMoveGen(piece) | straightMoveGen(piece)};
-    case Piece::Rook:
-      return {rookMoveGen(), straightMoveGen(piece)};
-    case Piece::Bishop:
-      return {bishopMoveGen(), diagMoveGen(piece)};
-    case Piece::Knight:
-      return {knightMoveGen(), knightMoves(piece)};
-    case Piece::Pawn:
-      return {pawnMoveGen(), pawnMoves(piece)};
+  case Piece::King:
+    return {kingMoveGen(), 1};
+  case Piece::Queen:
+    return {queenMoveGen(), diagMoveGen(piece, true) | straightMoveGen(piece, true)};
+  case Piece::Rook:
+    return {rookMoveGen(), straightMoveGen(piece, true)};
+  case Piece::Bishop:
+    return {bishopMoveGen(), diagMoveGen(piece, true)};
+  case Piece::Knight:
+    return {knightMoveGen(), knightMoves(piece)};
+  case Piece::Pawn:
+    return {pawnMoveGen(), makePawnMove(piece)};
   }
 
   /*std::cout << "passing";*/
@@ -253,48 +266,62 @@ std::tuple<int, uint64_t> Board::algebraicNotation(std::string move) {
   auto len = move.length();
 
   switch (len) {
-    case 2: {
-      return {Piece::Pawn, matchFile(move[len - 2]) & matchRank(move[len - 1])};
-    }
-    case 3: {
-      return {move[0], matchFile(move[len - 2]) & matchRank(move[len - 1])};
-    }
+  case 2: {
+    return {Piece::Pawn, matchFile(move[len - 2]) & matchRank(move[len - 1])};
+  }
+  case 3: {
+    return {move[0], matchFile(move[len - 2]) & matchRank(move[len - 1])};
+  }
   }
   return {-1, -1};
 }
 
-// going to have to separate the sliding move gen functions into their own directions to xor and remove
-// for knight, ~ the colorKnight then ^ with move gen of the algebraicNotation move ~ again then ^ with self
-// movegen on algebraic move -> & with piece -> ^ to remove piece from updated position.
+// going to have to separate the sliding move gen functions into their own
+// directions to xor and remove for knight, ~ the colorKnight then ^ with move
+// gen of the algebraicNotation move ~ again then ^ with self movegen on
+// algebraic move -> & with piece -> ^ to remove piece from updated position.
 // for pawn, i think something similar would work?
 // generalize your movegen so you can use it!!!
+
 void Board::makeMove(std::string notation) {
   auto [identifier, move] = algebraicNotation(notation);
-  std::cout << identifier << std::endl;
-  std::cout << Piece::Knight << std::endl;
   auto [possible_moves, backtracked_moves] = moveGen(identifier, move);
 
-  if (possible_moves == (uint64_t) -1 || ! (move & possible_moves)) {
+  if (possible_moves == (uint64_t)-1 || !(move & possible_moves)) {
+    std::cout << Error::INVALID_MOVE << std::endl;
     return;
   }
 
-  uint64_t* piece = nullptr;
+
+  uint64_t *piece = nullptr;
   if (wTurn) {
     piece = pieceMapW.at(identifier);
-  }
-  else {
+  } else {
     piece = pieceMapB.at(identifier);
   }
 
   *piece ^= (*(piece) & backtracked_moves);
   
-  std::cout << "\ntest" << std::endl;
-  printBitBoard((backtracked_moves));
-  std::cout << "test\n" << std::endl;
-
   *piece |= move;
 
+  wTurn = !wTurn;
+
   return;
+}
+
+uint64_t Board::makePawnMove(uint64_t move) {
+  uint64_t attacks;
+  uint64_t moves;
+
+  if (wTurn) {
+    moves = (move & Constant::RANK_4) >> 16 | move >> 8;
+    attacks = (move & ~Constant::FILE_A) >> 7 | (move & ~Constant::FILE_H) >> 9;
+  } else {
+    moves = (move & Constant::RANK_5) << 16 | move << 8;
+    attacks = (move & ~Constant::FILE_H) << 7 | (move & ~Constant::FILE_A) << 9;
+  }
+
+  return moves | attacks;
 }
 
 int main() {
@@ -303,7 +330,12 @@ int main() {
   /*board.printBoard();*/
 
   /*board.printBitBoard(board.pawnMoveGen());*/
-  board.makeMove("Nc3");
+  board.makeMove("e4");
+  board.makeMove("e5");
+  board.makeMove("Nf3");
+  board.makeMove("Nc6");
+  board.makeMove("Bc4");
+  board.makeMove("Bc5");
 
   board.printBoard();
 

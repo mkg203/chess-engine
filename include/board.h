@@ -99,9 +99,9 @@ public:
   
   uint64_t kingMoveGen();
 
-  uint64_t diagMoveGen(uint64_t piece);
+  uint64_t diagMoveGen(uint64_t, bool);
 
-  uint64_t straightMoveGen(uint64_t piece);
+  uint64_t straightMoveGen(uint64_t, bool);
   
   uint64_t bishopMoveGen();
   
@@ -113,7 +113,9 @@ public:
   
   std::tuple<int, uint64_t> algebraicNotation(std::string);
   
-  void makeMove(std::string notation);
+  void makeMove(std::string);
+
+  uint64_t makePawnMove(uint64_t);
 };
 
 #endif
